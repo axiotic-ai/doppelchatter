@@ -1,0 +1,10 @@
+*.pyc
+__pycache__/
+.venv/
+*.egg-info/
+dist/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+sessions/
+.ruff_cache/

@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doppelchatter</title>
+<style>
+/* ─── CSS Custom Properties ──────────────────────────────────────────── */
+:root {
+    --bg-deep: #0a0a0a;
+    --bg-primary: #0f0f0f;
+    --bg-secondary: #1a1a1a;
+    --bg-elevated: #252525;
+    --text-primary: #e0e0e0;
+    --text-secondary: #888;
+    --text-ghost: #555;
+    --border: #2a2a2a;
+    --twin-a: #C084FC;
+    --twin-b: #F59E0B;
+    --thought: #818CF8;
+    --third-agent: #34D399;
+    --system: #60A5FA;
+    --danger: #EF4444;
+    --live: #22C55E;
+    --font-serif: Georgia, 'Times New Roman', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'Courier New', monospace;
+    --gap: 12px;
+    --radius: 6px;
+    --transition-fast: 150ms ease;
+    --transition-normal: 300ms ease;
+}
+
+/* ─── Reset & Base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg-primary); color: var(--text-primary);
+    font-family: var(--font-sans); height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+button { cursor: pointer; border: none; font-family: inherit; font-size: inherit; }
+input, textarea { font-family: inherit; font-size: inherit; }
+
+/* ─── Header ─────────────────────────────────────────────────────────── */
+.header {
+    display: flex; align-items: center; gap: var(--gap);
+    padding: 8px 16px; background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border); min-height: 44px;
+    flex-shrink: 0;
+}
+.header .live-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--live);
+    animation: pulse 2s ease-in-out infinite; flex-shrink: 0;
+}
+.header .live-dot.paused { background: var(--twin-b); animation: none; }
+.header .live-dot.stopped { background: var(--danger); animation: none; }
+.header .live-dot.disconnected { background: var(--text-ghost); animation: none; }
+.header .title { flex: 1; font-size: 0.9em; color: var(--text-secondary); }
+.header .turn-counter { font-size: 0.8em; color: var(--text-ghost); font-family: var(--font-mono); }
+.header button { background: none; color: var(--text-secondary); padding: 4px 8px;
+    border-radius: var(--radius); font-size: 0.85em; }
+.header button:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ─── Main Layout ────────────────────────────────────────────────────── */
+.theatre {
+    display: flex; flex: 1; overflow: hidden;
+}
+
+/* ─── Wing Panels ────────────────────────────────────────────────────── */
+.wing {
+    width: 160px; padding: 16px; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; background: var(--bg-secondary);
+    border-right: 1px solid var(--border); flex-shrink: 0;
+    transition: opacity var(--transition-normal);
+}
+.wing.right { border-right: none; border-left: 1px solid var(--border); }
+.wing.dimmed { opacity: 0.4; }
+.wing .avatar { font-size: 2em; }
+.wing .twin-name { font-size: 0.85em; font-weight: 600; }
+.wing .twin-status { font-size: 0.75em; color: var(--text-ghost); min-height: 1.2em; }
+.wing .twin-meta { font-size: 0.7em; color: var(--text-ghost); margin-top: auto; text-align: center; }
+
+/* ─── Centre Stage ───────────────────────────────────────────────────── */
+.stage {
+    flex: 1; overflow-y: auto; padding: 24px; display: flex;
+    flex-direction: column; gap: 6px; scroll-behavior: smooth;
+}
+.stage::-webkit-scrollbar { width: 6px; }
+.stage::-webkit-scrollbar-track { background: transparent; }
+.stage::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Messages ───────────────────────────────────────────────────────── */
+.message {
+    font-family: var(--font-serif); padding: 8px 12px; border-radius: var(--radius);
+    animation: fadeIn 0.3s ease; max-width: 75%; line-height: 1.5;
+}
+.message .msg-sender {
+    font-size: 0.75em; font-weight: 600; margin-bottom: 2px;
+    font-family: var(--font-sans);
+}
+.message .msg-time {
+    font-size: 0.65em; color: var(--text-ghost); font-family: var(--font-sans);
+    margin-left: 8px; font-weight: 400;
+}
+.message .msg-body { font-size: 0.95em; word-break: break-word; }
+.message[data-role="twin_a"] {
+    border-left: 3px solid var(--twin-a); align-self: flex-start;
+}
+.message[data-role="twin_a"] .msg-sender { color: var(--twin-a); }
+.message[data-role="twin_b"] {
+    border-right: 3px solid var(--twin-b); align-self: flex-end; text-align: right;
+}
+.message[data-role="twin_b"] .msg-sender { color: var(--twin-b); }
+.message.third-agent {
+    border-left: 3px solid var(--third-agent); align-self: flex-start;
+    background: rgba(52, 211, 153, 0.05);
+}
+.message.third-agent .msg-sender { color: var(--third-agent); }
+.message.thought {
+    color: var(--thought); font-style: italic; font-size: 0.85em;
+    align-self: center; border: none; opacity: 0.7;
+}
+.message.system-msg {
+    color: var(--text-ghost); font-style: italic; font-size: 0.8em;
+    align-self: center; border: none;
+}
+.message.streaming .msg-body::after {
+    content: "█"; animation: blink 1s step-end infinite; color: var(--text-ghost);
+}
+
+/* Thinking indicator */
+.thinking {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 12px; font-size: 0.85em; color: var(--text-ghost);
+    font-family: var(--font-sans);
+}
+.thinking .dots span {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-ghost); animation: breathe 1.5s ease-in-out infinite;
+}
+.thinking .dots span:nth-child(2) { animation-delay: 0.15s; }
+.thinking .dots span:nth-child(3) { animation-delay: 0.3s; }
+
+/* Fin marker */
+.fin {
+    text-align: center; color: var(--text-ghost); font-family: var(--font-serif);
+    font-style: italic; padding: 24px; font-size: 1.1em;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes breathe { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+
+/* ─── Control Bar ────────────────────────────────────────────────────── */
+.controls {
+    display: flex; align-items: center; gap: var(--gap); padding: 10px 16px;
+    background: var(--bg-secondary); border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.controls .left { display: flex; gap: 8px; }
+.controls .right { display: flex; gap: 8px; margin-left: auto; }
+.btn {
+    padding: 6px 14px; border-radius: var(--radius); font-size: 0.85em;
+    background: var(--bg-elevated); color: var(--text-primary);
+    transition: background var(--transition-fast);
+}
+.btn:hover { background: #333; }
+.btn.danger { color: var(--danger); }
+.btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ─── Intervention Drawer ────────────────────────────────────────────── */
+.drawer {
+    display: none; padding: 12px 16px; background: var(--bg-deep);
+    border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.drawer.open { display: block; }
+.drawer .drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; font-size: 0.85em; color: var(--text-secondary);
+}
+.drawer .drawer-close { background: none; color: var(--text-ghost); font-size: 1.2em; }
+.drawer .target-select {
+    display: flex; gap: 12px; margin-bottom: 8px; font-size: 0.85em;
+}
+.drawer .target-select label { cursor: pointer; color: var(--text-secondary); }
+.drawer .target-select input:checked + span { color: var(--text-primary); font-weight: 600; }
+.drawer textarea {
+    width: 100%; padding: 8px; background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text-primary); resize: vertical;
+    min-height: 50px; max-height: 120px;
+}
+.drawer .agent-name-input {
+    width: 200px; padding: 6px 8px; background: var(--bg-secondary);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text-primary); margin-bottom: 8px;
+}
+.drawer .drawer-actions {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+}
+.drawer .hint { font-size: 0.75em; color: var(--text-ghost); }
+
+/* ─── Setup Screen ───────────────────────────────────────────────────── */
+.setup {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; flex: 1; padding: 40px 20px; gap: 32px;
+}
+.setup h1 {
+    font-size: 1.8em; letter-spacing: 0.15em; color: var(--text-primary);
+    text-transform: uppercase; font-weight: 300;
+}
+.setup .twin-selectors {
+    display: flex; gap: 40px; align-items: flex-start;
+}
+.setup .twin-select {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.setup .twin-select label { font-size: 0.85em; color: var(--text-secondary); }
+.setup select {
+    padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text-primary); font-size: 1em;
+    min-width: 180px; cursor: pointer;
+}
+.setup .scenario-section { width: 100%; max-width: 500px; }
+.setup .scenario-section label { display: block; font-size: 0.85em; color: var(--text-secondary); margin-bottom: 6px; }
+.setup textarea.scenario-input {
+    width: 100%; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text-primary); resize: vertical;
+    min-height: 80px; font-family: var(--font-serif); font-size: 0.9em;
+}
+.setup .presets { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+.setup .preset-btn {
+    padding: 4px 12px; background: var(--bg-elevated); color: var(--text-secondary);
+    border-radius: 999px; font-size: 0.8em; cursor: pointer; border: none;
+}
+.setup .preset-btn:hover { background: #333; color: var(--text-primary); }
+.setup .begin-btn {
+    padding: 12px 40px; background: var(--bg-elevated); color: var(--text-primary);
+    border-radius: var(--radius); font-size: 1.1em; letter-spacing: 0.05em;
+    transition: background var(--transition-normal), transform var(--transition-fast);
+}
+.setup .begin-btn:hover { background: #333; transform: scale(1.02); }
+.setup .begin-btn:disabled { opacity: 0.3; }
+
+/* ─── Curtain Animation ──────────────────────────────────────────────── */
+.curtain {
+    position: fixed; inset: 0; background: var(--bg-deep); z-index: 100;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.curtain.active { opacity: 1; pointer-events: all; }
+.curtain .curtain-names {
+    font-family: var(--font-serif); font-style: italic; font-size: 1.8em;
+    opacity: 0; transition: opacity 0.6s ease 0.2s;
+}
+.curtain .curtain-scenario {
+    font-size: 0.9em; color: var(--text-ghost);
+    opacity: 0; transition: opacity 0.4s ease 0.8s;
+}
+.curtain.reveal .curtain-names,
+.curtain.reveal .curtain-scenario { opacity: 1; }
+
+/* ─── Toast ──────────────────────────────────────────────────────────── */
+.toast-container {
+    position: fixed; top: 16px; right: 16px; z-index: 200;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+    padding: 10px 16px; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 0.85em; color: var(--text-primary);
+    animation: fadeIn 0.3s ease; max-width: 350px;
+}
+.toast.error { border-color: var(--danger); }
+
+/* ─── New Messages Pill ──────────────────────────────────────────────── */
+.new-messages-pill {
+    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+    padding: 6px 16px; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 999px; font-size: 0.8em; color: var(--text-secondary);
+    cursor: pointer; display: none; z-index: 10;
+}
+.new-messages-pill:hover { background: #333; }
+
+/* ─── Keyboard Shortcuts Overlay ─────────────────────────────────────── */
+.shortcuts-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300;
+    display: none; align-items: center; justify-content: center;
+}
+.shortcuts-overlay.open { display: flex; }
+.shortcuts-panel {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 32px; max-width: 400px; width: 90%;
+}
+.shortcuts-panel h2 { font-size: 1.1em; margin-bottom: 16px; }
+.shortcuts-panel table { width: 100%; }
+.shortcuts-panel td { padding: 4px 0; font-size: 0.85em; }
+.shortcuts-panel td:first-child {
+    font-family: var(--font-mono); color: var(--twin-a); width: 100px;
+}
+
+/* ─── Reconnecting Banner ────────────────────────────────────────────── */
+.reconnecting-banner {
+    display: none; padding: 6px 16px; background: rgba(245, 158, 11, 0.15);
+    color: var(--twin-b); font-size: 0.8em; text-align: center; flex-shrink: 0;
+}
+.reconnecting-banner.active { display: block; }
+
+/* ─── Responsive / Mobile ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .wing { display: none; }
+    .setup .twin-selectors { flex-direction: column; gap: 16px; }
+    .message { max-width: 95%; }
+    .mobile-status {
+        display: flex !important; gap: 12px; padding: 6px 16px;
+        background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+        font-size: 0.8em; flex-shrink: 0;
+    }
+    .mobile-status .ms-twin { display: flex; align-items: center; gap: 4px; }
+}
+.mobile-status { display: none; }
+
+/* ─── Hidden utility ─────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- Keyboard Shortcuts Overlay -->
+<div class="shortcuts-overlay" id="shortcutsOverlay">
+<div class="shortcuts-panel">
+    <h2>Keyboard Shortcuts</h2>
+    <table>
+        <tr><td>Space</td><td>Pause / Resume</td></tr>
+        <tr><td>T</td><td>Focus thought input</td></tr>
+        <tr><td>A</td><td>Focus third agent input</td></tr>
+        <tr><td>E</td><td>Export transcript</td></tr>
+        <tr><td>Esc</td><td>Close drawer / overlay</td></tr>
+        <tr><td>1 / 2</td><td>Target Twin A / B</td></tr>
+        <tr><td>⌘+↵</td><td>Send intervention</td></tr>
+        <tr><td>?</td><td>This overlay</td></tr>
+    </table>
+    <div style="text-align:center;margin-top:16px">
+        <button class="btn" onclick="document.getElementById('shortcutsOverlay').classList.remove('open')">Close</button>
+    </div>
+</div>
+</div>
+
+<!-- Curtain Animation -->
+<div class="curtain" id="curtain">
+    <div class="curtain-names" id="curtainNames"></div>
+    <div class="curtain-scenario" id="curtainScenario"></div>
+</div>
+
+<!-- Reconnecting Banner -->
+<div class="reconnecting-banner" id="reconnectBanner">⟳ Reconnecting...</div>
+
+<!-- Header -->
+<div class="header" id="header">
+    <div class="live-dot" id="liveDot"></div>
+    <div class="title" id="headerTitle">Doppelchatter</div>
+    <div class="turn-counter" id="turnCounter"></div>
+    <button onclick="doppel.showExportMenu()" title="Export">↓</button>
+    <button onclick="document.getElementById('shortcutsOverlay').classList.add('open')" title="Shortcuts">?</button>
+</div>
+
+<!-- Mobile Status Bar -->
+<div class="mobile-status" id="mobileStatus">
+    <div class="ms-twin" id="msTwinA"></div>
+    <div class="ms-twin" id="msTwinB"></div>
+</div>
+
+<!-- Setup Screen -->
+<div class="setup" id="setupScreen">
+    <h1>D O P P E L C H A T T E R</h1>
+    <div class="twin-selectors">
+        <div class="twin-select">
+            <label>Twin A</label>
+            <select id="selectA"></select>
+        </div>
+        <div class="twin-select">
+            <label>Twin B</label>
+            <select id="selectB"></select>
+        </div>
+    </div>
+    <div class="scenario-section">
+        <label>Scenario (optional)</label>
+        <textarea class="scenario-input" id="scenarioInput" placeholder="Set the scene... or leave empty for free-form conversation."></textarea>
+        <div class="presets" id="presets"></div>
+    </div>
+    <button class="begin-btn" id="beginBtn" onclick="doppel.begin()">▶ Begin</button>
+</div>
+
+<!-- Theatre (hidden until session starts) -->
+<div class="theatre hidden" id="theatre">
+    <!-- Wing A -->
+    <div class="wing" id="wingA">
+        <div class="avatar" id="avatarA">👤</div>
+        <div class="twin-name" id="nameA" style="color:var(--twin-a)">Twin A</div>
+        <div class="twin-status" id="statusA"></div>
+        <div class="twin-meta" id="metaA"></div>
+    </div>
+
+    <!-- Centre Stage -->
+    <div class="stage" id="stage"></div>
+
+    <!-- New Messages Pill -->
+    <div class="new-messages-pill" id="newMsgPill" onclick="doppel.scrollToBottom()">↓ New messages</div>
+
+    <!-- Wing B -->
+    <div class="wing right" id="wingB">
+        <div class="avatar" id="avatarB">👤</div>
+        <div class="twin-name" id="nameB" style="color:var(--twin-b)">Twin B</div>
+        <div class="twin-status" id="statusB"></div>
+        <div class="twin-meta" id="metaB"></div>
+    </div>
+</div>
+
+<!-- Intervention Drawer -->
+<div class="drawer" id="drawer">
+    <!-- Thought Panel -->
+    <div id="thoughtPanel" class="hidden">
+        <div class="drawer-header">
+            <span>💭 INJECT THOUGHT</span>
+            <button class="drawer-close" onclick="doppel.closeDrawer()">×</button>
+        </div>
+        <div class="target-select">
+            <label><input type="radio" name="thoughtTarget" value="twin_a" checked> <span id="thoughtTargetA">Twin A</span></label>
+            <label><input type="radio" name="thoughtTarget" value="twin_b"> <span id="thoughtTargetB">Twin B</span></label>
+        </div>
+        <textarea id="thoughtText" placeholder="What should they think..."></textarea>
+        <div class="drawer-actions">
+            <span class="hint">This thought is invisible to the other twin.</span>
+            <button class="btn" onclick="doppel.sendThought()">Send ⏎</button>
+        </div>
+    </div>
+    <!-- Agent Panel -->
+    <div id="agentPanel" class="hidden">
+        <div class="drawer-header">
+            <span>🎭 THIRD AGENT</span>
+            <button class="drawer-close" onclick="doppel.closeDrawer()">×</button>
+        </div>
+        <input class="agent-name-input" id="agentName" placeholder="Character name..." maxlength="50">
+        <textarea id="agentText" placeholder="What do they say..."></textarea>
+        <div class="drawer-actions">
+            <span class="hint">Both twins will see and react to this.</span>
+            <button class="btn" onclick="doppel.sendAgent()">Send ⏎</button>
+        </div>
+    </div>
+</div>
+
+<!-- Control Bar -->
+<div class="controls hidden" id="controlBar">
+    <div class="left">
+        <button class="btn" id="btnThought" onclick="doppel.openThought()">💭 Thought</button>
+        <button class="btn" id="btnAgent" onclick="doppel.openAgent()">🎭 Enter</button>
+    </div>
+    <div class="right">
+        <button class="btn" id="btnPause" onclick="doppel.pause()">⏸ Pause</button>
+        <button class="btn danger" id="btnStop" onclick="doppel.stop()">⏹ Stop</button>
+    </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  Doppelchatter Frontend — Vanilla JS, zero dependencies               */
+/* ═══════════════════════════════════════════════════════════════════════ */
+const doppel = (() => {
+    // ─── State ──────────────────────────────────────────────────────────
+    let ws = null;
+    let profiles = [];
+    let scenarios = [];
+    let session = null;
+    let lastSequence = 0;
+    let reconnectAttempts = 0;
+    let reconnectTimer = null;
+    let autoScroll = true;
+    let streamingEl = null;
+    let streamingRole = null;
+    let paused = false;
+    let stopped = false;
+    let missedWhileScrolledUp = 0;
+
+    const MAX_RECONNECT = 20;
+
+    // ─── DOM refs ───────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    // ─── WebSocket ──────────────────────────────────────────────────────
+    function connect() {
+        const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${proto}//${location.host}/ws`);
+
+        ws.onopen = () => {
+            reconnectAttempts = 0;
+            $('reconnectBanner').classList.remove('active');
+            $('liveDot').className = 'live-dot';
+        };
+
+        ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.sequence) lastSequence = msg.sequence;
+            handleEvent(msg);
+        };
+
+        ws.onclose = (e) => {
+            if (!e.wasClean && reconnectAttempts < MAX_RECONNECT) {
+                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                reconnectAttempts++;
+                $('reconnectBanner').classList.add('active');
+                $('liveDot').className = 'live-dot disconnected';
+                reconnectTimer = setTimeout(connect, delay);
+            }
+        };
+
+        ws.onerror = () => {};
+    }
+
+    function send(type, data = {}) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type, ...data }));
+        }
+    }
+
+    // ─── Event Handler ──────────────────────────────────────────────────
+    function handleEvent(msg) {
+        switch (msg.type) {
+            case 'connected':
+                profiles = msg.profiles || [];
+                scenarios = msg.scenarios || [];
+                session = msg.session;
+                populateSetup();
+                if (session && session.state !== 'idle' && session.state !== 'stopped') {
+                    showTheatre(session);
+                }
+                break;
+
+            case 'session_started':
+                session = msg.session;
+                showTheatre(session);
+                break;
+
+            case 'thinking_start':
+                showThinking(msg.twin, msg.twin_role);
+                updateWingStatus(msg.twin_role, 'thinking...');
+                updateOtherWing(msg.twin_role, 'listening...');
+                break;
+
+            case 'turn_start':
+                removeThinking();
+                startStreaming(msg.twin_role, msg.twin);
+                updateWingStatus(msg.twin_role, 'speaking...');
+                break;
+
+            case 'stream_token':
+                appendToken(msg.twin_role, msg.token);
+                break;
+
+            case 'turn_end':
+                finalizeStream(msg.message);
+                updateTurnCounter(msg.turn);
+                break;
+
+            case 'thought_queued':
+                showToast(`💭 Thought queued for ${msg.thought.target === 'twin_a' ? twinName('a') : twinName('b')}`);
+                break;
+
+            case 'thought_applied':
+                showToast(`💭 Thought delivered to ${msg.target === 'twin_a' ? twinName('a') : twinName('b')}`);
+                break;
+
+            case 'thought_cancelled':
+                showToast('💭 Thought cancelled');
+                break;
+
+            case 'agent_delivered':
+                showToast(`🎭 ${msg.message.name} entered the scene`);
+                break;
+
+            case 'session_paused':
+                session = msg.session;
+                paused = true;
+                $('liveDot').className = 'live-dot paused';
+                $('btnPause').textContent = '▶ Resume';
+                $('btnPause').onclick = () => doppel.resume();
+                removeThinking();
+                break;
+
+            case 'session_resumed':
+                session = msg.session;
+                paused = false;
+                $('liveDot').className = 'live-dot';
+                $('btnPause').textContent = '⏸ Pause';
+                $('btnPause').onclick = () => doppel.pause();
+                break;
+
+            case 'session_stopped':
+                session = msg.session;
+                stopped = true;
+                paused = false;
+                $('liveDot').className = 'live-dot stopped';
+                removeThinking();
+                showFin();
+                $('btnPause').disabled = true;
+                $('btnStop').disabled = true;
+                updateWingStatus('twin_a', '');
+                updateWingStatus('twin_b', '');
+                break;
+
+            case 'error':
+                if (msg.code === 'QUEUE_FULL') {
+                    showToast(msg.message, true);
+                } else {
+                    showToast(msg.message || 'An error occurred', true);
+                }
+                break;
+
+            case 'pong':
+                break;
+        }
+    }
+
+    // ─── Setup Screen ───────────────────────────────────────────────────
+    function populateSetup() {
+        const selA = $('selectA'), selB = $('selectB');
+        selA.innerHTML = ''; selB.innerHTML = '';
+        profiles.forEach((p, i) => {
+            const optA = new Option(`${p.avatar} ${p.display_name || p.name}`, p.slug);
+            const optB = new Option(`${p.avatar} ${p.display_name || p.name}`, p.slug);
+            selA.add(optA); selB.add(optB);
+            if (i === 1) selB.selectedIndex = i;
+        });
+
+        const presetsEl = $('presets');
+        presetsEl.innerHTML = '';
+        scenarios.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'preset-btn';
+            btn.textContent = s.name || s.slug;
+            btn.onclick = () => {
+                $('scenarioInput').value = s.description || '';
+                $('scenarioInput').dataset.slug = s.slug;
+            };
+            presetsEl.appendChild(btn);
+        });
+    }
+
+    // ─── Theatre Display ────────────────────────────────────────────────
+    function showTheatre(sess) {
+        // Curtain animation
+        const curtain = $('curtain');
+        const a = sess.twin_a, b = sess.twin_b;
+        if (a && b) {
+            $('curtainNames').innerHTML =
+                `<span style="color:${a.color || 'var(--twin-a)'}">${a.display_name}</span>` +
+                ` <span style="color:var(--text-ghost)">×</span> ` +
+                `<span style="color:${b.color || 'var(--twin-b)'}">${b.display_name}</span>`;
+            $('curtainScenario').textContent = sess.scenario_name || '';
+            curtain.classList.add('active');
+            setTimeout(() => curtain.classList.add('reveal'), 50);
+            setTimeout(() => {
+                curtain.classList.remove('active', 'reveal');
+                revealTheatre(sess);
+            }, 2300);
+        } else {
+            revealTheatre(sess);
+        }
+    }
+
+    function revealTheatre(sess) {
+        $('setupScreen').classList.add('hidden');
+        $('theatre').classList.remove('hidden');
+        $('controlBar').classList.remove('hidden');
+        stopped = false; paused = false;
+        $('btnPause').disabled = false;
+        $('btnStop').disabled = false;
+        $('btnPause').textContent = '⏸ Pause';
+        $('btnPause').onclick = () => doppel.pause();
+
+        const a = sess.twin_a, b = sess.twin_b;
+        if (a) {
+            document.documentElement.style.setProperty('--twin-a', a.color || '#C084FC');
+            $('avatarA').textContent = a.avatar || '👤';
+            $('nameA').textContent = a.display_name || 'Twin A';
+            $('nameA').style.color = a.color || 'var(--twin-a)';
+            $('thoughtTargetA').textContent = a.display_name;
+            $('msTwinA').innerHTML = `${a.avatar} ${a.display_name} <span id="msStatusA" style="color:var(--text-ghost)"></span>`;
+        }
+        if (b) {
+            document.documentElement.style.setProperty('--twin-b', b.color || '#F59E0B');
+            $('avatarB').textContent = b.avatar || '👤';
+            $('nameB').textContent = b.display_name || 'Twin B';
+            $('nameB').style.color = b.color || 'var(--twin-b)';
+            $('thoughtTargetB').textContent = b.display_name;
+            $('msTwinB').innerHTML = `${b.avatar} ${b.display_name} <span id="msStatusB" style="color:var(--text-ghost)"></span>`;
+        }
+        $('headerTitle').textContent = sess.scenario_name
+            ? `"${sess.scenario_name}" — ${a?.display_name || '?'} × ${b?.display_name || '?'}`
+            : `${a?.display_name || '?'} × ${b?.display_name || '?'}`;
+
+        $('stage').innerHTML = '';
+        updateTurnCounter(0);
+    }
+
+    // ─── Message Rendering ──────────────────────────────────────────────
+    function showThinking(name, role) {
+        removeThinking();
+        const el = document.createElement('div');
+        el.className = 'thinking';
+        el.id = 'thinkingIndicator';
+        const color = role === 'twin_a' ? 'var(--twin-a)' : 'var(--twin-b)';
+        el.innerHTML = `<span class="dots"><span></span><span></span><span></span></span> <span style="color:${color}">${esc(name)}</span> is thinking...`;
+        $('stage').appendChild(el);
+        maybeScroll();
+    }
+
+    function removeThinking() {
+        const el = $('thinkingIndicator');
+        if (el) el.remove();
+    }
+
+    function startStreaming(role, name) {
+        const el = document.createElement('div');
+        el.className = 'message streaming';
+        el.dataset.role = role;
+        const color = role === 'twin_a' ? 'var(--twin-a)' : 'var(--twin-b)';
+        const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        el.innerHTML = `<div class="msg-sender" style="color:${color}">${esc(name)}<span class="msg-time">${time}</span></div><div class="msg-body"></div>`;
+        $('stage').appendChild(el);
+        streamingEl = el;
+        streamingRole = role;
+        maybeScroll();
+    }
+
+    function appendToken(role, token) {
+        if (!streamingEl) return;
+        const body = streamingEl.querySelector('.msg-body');
+        if (body) body.textContent += token;
+        maybeScroll();
+    }
+
+    function finalizeStream(message) {
+        if (streamingEl) {
+            streamingEl.classList.remove('streaming');
+            const body = streamingEl.querySelector('.msg-body');
+            if (body && message) body.textContent = message.content;
+            streamingEl = null;
+            streamingRole = null;
+        }
+        // If message was multi-message, additional messages get rendered as static
+    }
+
+    function renderStaticMessage(msg) {
+        const stage = $('stage');
+        const el = document.createElement('div');
+        const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+
+        if (msg.type === 'twin') {
+            el.className = 'message';
+            el.dataset.role = msg.twin_role || '';
+            const color = msg.twin_role === 'twin_a' ? 'var(--twin-a)' : 'var(--twin-b)';
+            el.innerHTML = `<div class="msg-sender" style="color:${color}">${esc(msg.sender)}<span class="msg-time">${time}</span></div><div class="msg-body">${esc(msg.content)}</div>`;
+        } else if (msg.type === 'thought') {
+            el.className = 'message thought';
+            const targetName = msg.metadata?.target_name || '?';
+            el.innerHTML = `💭 <em>[Thought → ${esc(targetName)}]</em> ${esc(msg.content)}`;
+        } else if (msg.type === 'third_agent') {
+            el.className = 'message third-agent';
+            el.innerHTML = `<div class="msg-sender" style="color:var(--third-agent)">🎭 ${esc(msg.sender)}<span class="msg-time">${time}</span></div><div class="msg-body">${esc(msg.content)}</div>`;
+        } else if (msg.type === 'system') {
+            el.className = 'message system-msg';
+            el.textContent = msg.content;
+        }
+
+        stage.appendChild(el);
+        maybeScroll();
+    }
+
+    function showFin() {
+        const el = document.createElement('div');
+        el.className = 'fin';
+        el.textContent = '— fin —';
+        $('stage').appendChild(el);
+        maybeScroll();
+    }
+
+    // ─── Wing Updates ───────────────────────────────────────────────────
+    function updateWingStatus(role, status) {
+        const id = role === 'twin_a' ? 'statusA' : 'statusB';
+        $(id).textContent = status;
+        // Wing dimming
+        $('wingA').classList.toggle('dimmed', role !== 'twin_a' && status);
+        $('wingB').classList.toggle('dimmed', role !== 'twin_b' && status);
+        // Mobile status
+        const msId = role === 'twin_a' ? 'msStatusA' : 'msStatusB';
+        const msEl = $(msId);
+        if (msEl) msEl.textContent = status ? `·${status}` : '';
+    }
+
+    function updateOtherWing(activeRole, status) {
+        const other = activeRole === 'twin_a' ? 'statusB' : 'statusA';
+        $(other).textContent = status;
+    }
+
+    function twinName(side) {
+        if (!session) return side === 'a' ? 'Twin A' : 'Twin B';
+        const t = side === 'a' ? session.twin_a : session.twin_b;
+        return t?.display_name || (side === 'a' ? 'Twin A' : 'Twin B');
+    }
+
+    function updateTurnCounter(n) {
+        $('turnCounter').textContent = n > 0 ? `Turn ${n}` : '';
+    }
+
+    // ─── Auto-Scroll ────────────────────────────────────────────────────
+    function maybeScroll() {
+        if (autoScroll) {
+            const stage = $('stage');
+            stage.scrollTop = stage.scrollHeight;
+        } else {
+            missedWhileScrolledUp++;
+            $('newMsgPill').style.display = 'block';
+            $('newMsgPill').textContent = `↓ ${missedWhileScrolledUp} new message${missedWhileScrolledUp > 1 ? 's' : ''}`;
+        }
+    }
+
+    // Setup scroll listener
+    function initScrollListener() {
+        const stage = $('stage');
+        stage.addEventListener('scroll', () => {
+            const atBottom = stage.scrollHeight - stage.scrollTop - stage.clientHeight < 100;
+            if (atBottom) {
+                autoScroll = true;
+                missedWhileScrolledUp = 0;
+                $('newMsgPill').style.display = 'none';
+            } else {
+                autoScroll = false;
+            }
+        });
+    }
+
+    // ─── Drawer & Interventions ─────────────────────────────────────────
+    function openDrawer(panel) {
+        $('drawer').classList.add('open');
+        $('thoughtPanel').classList.add('hidden');
+        $('agentPanel').classList.add('hidden');
+        $(panel).classList.remove('hidden');
+        const textarea = panel === 'thoughtPanel' ? $('thoughtText') : $('agentText');
+        setTimeout(() => textarea.focus(), 100);
+    }
+
+    function closeDrawer() {
+        $('drawer').classList.remove('open');
+    }
+
+    // ─── Toast ──────────────────────────────────────────────────────────
+    function showToast(text, isError = false) {
+        const el = document.createElement('div');
+        el.className = 'toast' + (isError ? ' error' : '');
+        el.textContent = text;
+        $('toasts').appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+    }
+
+    // ─── Export ─────────────────────────────────────────────────────────
+    function showExportMenu() {
+        if (!session) return;
+        const fmt = prompt('Export format: json, markdown, or html', 'markdown');
+        if (fmt && ['json', 'markdown', 'html'].includes(fmt)) {
+            window.open(`/api/v1/sessions/${session.id}/export?format=${fmt}`);
+        }
+    }
+
+    // ─── Utility ────────────────────────────────────────────────────────
+    function esc(str) {
+        const d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
+    }
+
+    // ─── Keyboard Shortcuts ─────────────────────────────────────────────
+    function initKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            // Don't intercept when typing
+            const tag = e.target.tagName;
+            const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+            if (e.key === 'Escape') {
+                closeDrawer();
+                $('shortcutsOverlay').classList.remove('open');
+                return;
+            }
+
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && inInput) {
+                // Send intervention
+                if (!$('thoughtPanel').classList.contains('hidden')) sendThought();
+                else if (!$('agentPanel').classList.contains('hidden')) sendAgent();
+                return;
+            }
+
+            if (inInput) return;
+
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    if (paused) resume(); else pause();
+                    break;
+                case 't': case 'T': openDrawer('thoughtPanel'); break;
+                case 'a': openDrawer('agentPanel'); break;
+                case 'e': case 'E': showExportMenu(); break;
+                case '?': $('shortcutsOverlay').classList.add('open'); break;
+                case '1':
+                    document.querySelector('input[name="thoughtTarget"][value="twin_a"]').checked = true;
+                    break;
+                case '2':
+                    document.querySelector('input[name="thoughtTarget"][value="twin_b"]').checked = true;
+                    break;
+            }
+        });
+    }
+
+    // ─── Visibility API (tab backgrounding) ─────────────────────────────
+    function initVisibility() {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && ws && ws.readyState === WebSocket.OPEN) {
+                send('resync', { last_sequence: lastSequence });
+            }
+        });
+    }
+
+    // ─── Keepalive ──────────────────────────────────────────────────────
+    function initHeartbeat() {
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                send('ping');
+            }
+        }, 30000);
+    }
+
+    // ─── Public API ─────────────────────────────────────────────────────
+    function begin() {
+        const twinA = $('selectA').value;
+        const twinB = $('selectB').value;
+        const scenarioSlug = $('scenarioInput').dataset.slug || '';
+        const scenarioText = $('scenarioInput').value;
+        send('start_session', {
+            twin_a: twinA, twin_b: twinB,
+            scenario: scenarioSlug, scenario_text: scenarioText
+        });
+    }
+
+    function pause() { send('pause'); }
+    function resume() { send('resume'); }
+    function stop() {
+        if (confirm('Stop this session?')) send('stop');
+    }
+
+    function sendThought() {
+        const target = document.querySelector('input[name="thoughtTarget"]:checked')?.value || 'twin_a';
+        const text = $('thoughtText').value.trim();
+        if (!text) return;
+        send('inject_thought', { target, text });
+        $('thoughtText').value = '';
+    }
+
+    function sendAgent() {
+        const name = $('agentName').value.trim();
+        const text = $('agentText').value.trim();
+        if (!name || !text) return;
+        send('inject_agent', { name, text });
+        $('agentName').value = '';
+        $('agentText').value = '';
+    }
+
+    function scrollToBottom() {
+        const stage = $('stage');
+        stage.scrollTop = stage.scrollHeight;
+        autoScroll = true;
+        missedWhileScrolledUp = 0;
+        $('newMsgPill').style.display = 'none';
+    }
+
+    // ─── Init ───────────────────────────────────────────────────────────
+    function init() {
+        connect();
+        initScrollListener();
+        initKeyboard();
+        initVisibility();
+        initHeartbeat();
+    }
+
+    return {
+        init, begin, pause, resume, stop,
+        sendThought, sendAgent,
+        openThought: () => openDrawer('thoughtPanel'),
+        openAgent: () => openDrawer('agentPanel'),
+        closeDrawer, showExportMenu, scrollToBottom,
+    };
+})();
+
+document.addEventListener('DOMContentLoaded', doppel.init);
+</script>
+</body>
+</html>

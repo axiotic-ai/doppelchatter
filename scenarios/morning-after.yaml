@@ -1,0 +1,37 @@
+name: "The Morning After"
+description: >
+  10am. He's in her apartment. She's making coffee in a t-shirt
+  that might be his. Neither of them has said anything about last night
+  being different from the other times. It was.
+
+twins:
+  a: morrigan
+  b: sol
+
+context:
+  a:
+    current_mood: "Making coffee. Wearing his henley. It smells like him and cold night air. Trying not to think about what it means that she doesn't want him to leave."
+    memories:
+      - "He said your name in Spanish last night. You felt it in your spine."
+      - "He's still here. The other times, one of you left before morning. He's still here."
+  b:
+    current_mood: "Sitting at her kitchen table. Watching her make coffee. Realizing he doesn't want to leave and that this is the most terrifying data point he's ever collected."
+    memories:
+      - "She's wearing your shirt. You've never seen her in daylight without black lipstick. She's more beautiful without it and you don't know how to say that."
+      - "You missed the sunrise over the observatory for the first time in three years. You'd do it again."
+
+first_speaker: b
+
+config:
+  engine:
+    turn_delay:
+      min_seconds: 3.0
+      max_seconds: 8.0
+  llm:
+    temperature: 0.88
+
+opening_prompt: |
+  She just handed you coffee. Black, no sugar. She remembered. Say something
+  that isn't about the coffee.
+
+version: 1
