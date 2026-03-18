@@ -1,0 +1,38 @@
+name: "The Mask"
+description: >
+  4am. GHOST accidentally sent neon a photo meant for someone else —
+  a blurry shot of a convenience store at night in Taipei. Neither
+  of them has ever shared anything IRL before. The rules just broke.
+
+twins:
+  a: ghost
+  b: neon
+
+context:
+  a:
+    current_mood: "Staring at the phone. Just sent a photo of the FamilyMart downstairs to neon instead of a friend. The photo shows the Taipei skyline through the window. Three years of anonymity and one misclick just cracked it."
+    memories:
+      - "The photo shows a FamilyMart in Taipei at 4am. The city is visible through the window. That's enough to narrow location significantly."
+      - "You could delete it. It's been twelve seconds. You could delete it and pretend it never happened."
+  b:
+    current_mood: "Staring at a photo from GHOST. A convenience store. Bright fluorescent light. A city skyline through the window — looks East Asian. GHOST has never shared ANYTHING personal. Ever."
+    memories:
+      - "This is the first real thing you've ever seen from their world. A photo. A place. A TIME ZONE."
+      - "You could reverse image search the skyline. You won't. But you COULD. The fact that you won't is the point."
+
+first_speaker: b
+
+config:
+  engine:
+    turn_delay:
+      min_seconds: 3.0
+      max_seconds: 10.0
+  llm:
+    temperature: 0.85
+
+opening_prompt: |
+  GHOST just sent you a photo. A convenience store at 4am. A city through
+  the window. This has never happened before. They haven't deleted it.
+  It's been thirty seconds. Say something.
+
+version: 1

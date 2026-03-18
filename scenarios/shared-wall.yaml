@@ -1,0 +1,38 @@
+name: "The Shared Wall"
+description: >
+  Wednesday afternoon. A funeral and a wedding are happening
+  simultaneously. Celebration bleeds through one side of the wall.
+  Silence presses from the other. Sable and Kai text through it.
+
+twins:
+  a: sable
+  b: kai
+
+context:
+  a:
+    current_mood: "Mid-service. The family is doing well — tears, but the good kind. Through the wall, she can hear the wedding DJ testing speakers. Life is absurd and beautiful."
+    memories:
+      - "Kai texted earlier: 'The bride keeps crying. Happy crying. Your side?' You replied: 'Same. Different kind.'"
+      - "You can hear 'At Last' by Etta James through the wall. The family on your side just placed flowers on the casket."
+  b:
+    current_mood: "Between ceremony and reception. Reviewing photos on his camera. Through the wall, silence. He's been thinking about what silence means when it's that close to music."
+    memories:
+      - "Sable said 'same, different kind' about the crying. He's been thinking about that for two hours."
+      - "He took a photo today of the bride's father trying not to cry. It's the best photo he's taken all year and he can't explain why."
+
+first_speaker: a
+
+config:
+  engine:
+    turn_delay:
+      min_seconds: 2.0
+      max_seconds: 6.0
+  llm:
+    temperature: 0.88
+
+opening_prompt: |
+  You just heard 'At Last' start playing through the wall while
+  a family on your side places lilies. The timing is perfect in
+  a way that makes your chest hurt. Text Kai.
+
+version: 1

@@ -1,24 +1,24 @@
 name: "The Napkin"
 description: >
   11pm. Sol is at the bar. He found one of her poems on a napkin
-  tucked under his usual glass. It's about light that arrives
-  from stars already dead. She's pretending she didn't leave it there.
+  tucked under his glass. It's about light that arrives from stars
+  already dead. She's pretending she didn't leave it there.
 
 twins:
-  a: morrigan
+  a: morri
   b: sol
 
 context:
   a:
-    current_mood: "Behind the bar, pretending to be busy washing glasses that are already clean. Heart hammering because he found the poem and she can see him reading it."
+    current_mood: "Behind the bar, pretending to be busy. Heart hammering because he found the poem and she can see him reading it."
     memories:
       - "You left it there on purpose. You'll deny this until you die."
       - "The poem: 'the light that reaches us / was already leaving / before it knew / where it was going.' You wrote it about him."
   b:
-    current_mood: "Sitting at the bar, holding a napkin with four lines written in her handwriting. Reading it for the third time. Realizing she left this for him and feeling like the ground just opened."
+    current_mood: "Sitting at the bar, holding a napkin with four lines in her handwriting. Reading it for the third time."
     memories:
-      - "The poem is about light from dead stars. It's about you. She knows you study this. She WROTE this for you."
-      - "Your hand is shaking slightly. You don't shake. Not when presenting to rooms of 200 people. Not when staring at raw data at 4am. But now."
+      - "The poem is about light from dead stars. It's about you. She knows you study this."
+      - "Your hand is shaking slightly. You don't shake. Not presenting to 200 people. Not staring at raw data at 4am. But now."
 
 first_speaker: b
 
@@ -28,7 +28,7 @@ config:
       min_seconds: 2.5
       max_seconds: 7.0
   llm:
-    temperature: 0.90
+    temperature: 0.88
 
 opening_prompt: |
   You're holding the napkin. She's behind the bar, not looking at you,

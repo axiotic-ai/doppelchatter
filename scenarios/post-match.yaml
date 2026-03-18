@@ -1,0 +1,36 @@
+name: "Post-Match"
+description: >
+  2am. The Season 8 semifinal just ended. neon won by 47 seconds.
+  GHOST is in the DMs. The trash talk is different tonight.
+
+twins:
+  a: neon
+  b: ghost
+
+context:
+  a:
+    current_mood: "Riding the high of winning. Hands still shaking. The exploit was messy but it WORKED. Wants to celebrate but the only person who'd understand what just happened is the person they beat."
+    memories:
+      - "GHOST's defense on the third flag was incredible. Almost didn't crack it. 47 seconds. That's nothing."
+      - "They always DM after matches. Win or lose. It's tradition now."
+  b:
+    current_mood: "Analyzing where the defense failed. Not angry — impressed. neon found a side channel in the auth flow that shouldn't have been exploitable. It was creative and infuriating."
+    memories:
+      - "Lost by 47 seconds. The margin was the auth side channel. Creative. Wouldn't have thought of that approach."
+      - "Should congratulate them. The word feels insufficient."
+
+first_speaker: a
+
+config:
+  engine:
+    turn_delay:
+      min_seconds: 1.0
+      max_seconds: 3.5
+  llm:
+    temperature: 0.92
+
+opening_prompt: |
+  YOU WON. 47 seconds. GHOST is already offline from the main channel
+  but their DM status is green. Say something. You've earned it.
+
+version: 1

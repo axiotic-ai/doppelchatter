@@ -1,14 +1,12 @@
 # 🎭 Doppelchatter
 
-Real-time digital twin theatre — watch two AI versions of fictional people talk to each other.
+Real-time digital twin theatre — watch two AI characters talk to each other.
 
 ## What Is This?
 
 Load personality profiles for two characters. Press play. Watch them text each other in real-time with streaming responses, turn-by-turn conversation, and natural timing. Intervene by injecting thoughts into either character's mind, or drop a third character into the scene.
 
-Ships with **Morri & Sol** — a Brooklyn bartender-poet and a Chilean astrophysicist, 3am texters, circling something neither of them has named yet. Three scenarios included: *The Witching Hour*, *The Morning After*, and *The Napkin*.
-
-> ⚠️ **Content warning:** The included profiles and scenarios contain adult themes, explicit language, and sexual content. The characters are fictional.
+Ships with **four character pairs** and **eight scenarios** — from bartender-poets and astrophysicists to regression manhwa office mysteries, anonymous hacker rivals, and a funeral director who out-sunshines a wedding photographer.
 
 ## Quick Start
 
@@ -54,51 +52,52 @@ doppel chatter --debug              # Debug logging
 doppel export abc123 --format html  # Export as HTML
 ```
 
-## Twin Profiles
+## Character Pairs
 
-YAML files in `twins/`. Minimal profile:
+### 🖤 Morri × 🔭 Sol — *The Poet and the Stargazer*
 
-```yaml
-name: Alex
-system_prompt: |
-  You are Alex. Text naturally. Short messages.
-avatar: "🌙"
-color: "#C084FC"
-```
+**Morri** (Morrigan) — Brooklyn bartender at The Velvet Coffin. Writes poetry on napkins. Dark humor, lowercase everything, rapid-fire texts. Intimidating exterior, soft interior.
 
-Full profile supports: `display_name`, `description`, `background`, `memories`, `current_mood`, `tags`, per-twin `model` overrides, and `behavior` config (multi-message, max length).
+**Sol** (Solaris Vega) — Chilean astrophysicist, works nights at an observatory. Earnest, precise, accidentally poetic. Science metaphors for feelings he doesn't realize are devastating.
 
-### Included Characters
+*They met when he wandered in looking for somewhere quiet. She made him a drink he didn't order. He stayed until close.*
 
-**🖤 Morrigan (Morri)** — Bartender at The Velvet Coffin. Brooklyn-born, Puerto Rican. Writes poetry on napkins. Dark humor, zero filter. Texts in lowercase bursts. Direct about desire.
+### 🔄 Jin × 📋 Hana — *The Returner and the Investigator*
 
-**🔭 Sol (Solaris Vega)** — Astrophysicist working nights at an observatory. Chilean. Earnest, precise, accidentally poetic. Uses science metaphors for feelings. Devastating when the control slips.
+**Jin** (Park Jinwoo) — Senior analyst at a Seoul consulting firm. Carries himself like someone who's already lived through everything once. Says things he shouldn't know. Dry humor masking something heavy. *(Regression manhwa energy — Omniscient Reader meets office thriller.)*
+
+**Hana** (Choi Hana) — Junior analyst. Bright, relentlessly curious. Keeps a spreadsheet called "Jin Anomaly Log" tracking all the impossible things he seems to predict. 31 entries and counting. She's going to figure him out. *(The protagonist energy of someone who pulls at threads until reality unravels.)*
+
+*She noticed. Nobody else ever noticed. That's either the best or the worst thing that could have happened to him.*
+
+### 👻 GHOST × 💡 neon.exe — *The Rivals Behind the Mask*
+
+**GHOST** — Ranked #2 in the DARKNET CTF league. Methodical, precise, perfect punctuation. Types "." when something makes them laugh. IRL: a 23-year-old grad student in Taipei living on onigiri. *(Solo Leveling's quiet power meets cyberpunk anonymity.)*
+
+**neon.exe** — Ranked #1 (on a good day). ALL CAPS energy, chaotic exploits with comments like `// lmao what if`, aggressive emoji. IRL: a 21-year-old art school dropout in São Paulo. *(The chaotic shonen rival who shouldn't be this good but IS.)*
+
+*Three seasons of rivalry. In public: trash talk. In DMs: the only conversations that feel real. Neither knows the other's name. Both could find out. Neither will.*
+
+### 🌻 Sable × 📸 Kai — *Sunshine and Melancholy*
+
+**Sable** — Apprentice funeral director. Somehow the most upbeat person alive. Uses `:)` instead of emoji because "they have more soul." Says accidentally profound things about death, then pivots to snacks. *(Spy × Family's tonal whiplash meets slice-of-life warmth.)*
+
+**Kai** — Wedding photographer next door. Captures joy for a living, carries sadness he can't explain. Sees too much — the father who can't stop crying, the bridesmaid in love with the groom. Rarely initiates, but writes messages people screenshot. *(The quiet melancholic observer from every seinen manga.)*
+
+*They share a wall. Celebration on one side, silence on the other. She brings him coffee. He leaves flowers from his wedding arrangements on her desk. Neither has acknowledged the ritual.*
 
 ## Scenarios
 
-YAML files in `scenarios/`. Set the scene with mood overrides, extra memories, and opening prompts:
-
-```yaml
-name: "The Witching Hour"
-description: "3am. She just closed the bar. He's at the observatory..."
-twins:
-  a: morrigan
-  b: sol
-context:
-  a:
-    current_mood: "Just locked up. Mezcal in hand. Phone in hand."
-  b:
-    current_mood: "Staring at a spectrogram. Not seeing it."
-opening_prompt: "Type something before the careful version of you can stop it."
-```
-
-### Included Scenarios
-
-| Scenario | Description |
-|----------|-------------|
-| **The Witching Hour** | 3am. She's at the bar, he's at the observatory. The conversation drifts toward everything they've been avoiding. |
-| **The Morning After** | 10am. He's in her apartment. She's making coffee in his shirt. Neither is talking about why he didn't leave. |
-| **The Napkin** | He found one of her poems. It's about light from dead stars. She's pretending she didn't leave it for him. |
+| Scenario | Pair | Setup |
+|----------|------|-------|
+| **The Witching Hour** | Morri × Sol | 3am. She's at the bar, he's at the observatory. Honesty happens when the city sleeps. |
+| **The Napkin** | Morri × Sol | He found her poem. Four lines about light from dead stars. She's pretending she didn't leave it for him. |
+| **Monday Morning** | Jin × Hana | Jin slipped in a meeting — used present tense about a future event. Hana is texting him from across the table. |
+| **The Rooftop** | Jin × Hana | 11pm. Office building roof. 31 spreadsheet entries. Tonight she asks. |
+| **Post-Match** | GHOST × neon | Season 8 semifinal just ended. neon won by 47 seconds. The DMs hit different after a close match. |
+| **The Mask** | GHOST × neon | GHOST accidentally sent a photo — a convenience store in Taipei at 4am. Three years of anonymity cracked by one misclick. |
+| **The Shared Wall** | Sable × Kai | A funeral and wedding happen simultaneously. Music bleeds through the wall. They text through it. |
+| **The Photo** | Sable × Kai | Kai photographed her memorial garden at golden hour. She's never seen her own world through someone else's eyes before. |
 
 ## Configuration
 
@@ -129,10 +128,23 @@ engine:
 | `OPENROUTER_API_KEY` | Fallback API key |
 | `ANTHROPIC_API_KEY` | Anthropic API key (direct, no OpenRouter) |
 | `DOPPEL_PORT` | Override server port |
-| `DOPPEL_HOST` | Override server host |
 | `DOPPEL_MODEL` | Override default model |
 | `DOPPEL_DEBUG` | Enable debug logging |
 | `DOPPEL_NO_BROWSER` | Don't auto-open browser |
+
+## Twin Profiles
+
+YAML files in `twins/`. Minimal profile:
+
+```yaml
+name: Alex
+system_prompt: |
+  You are Alex. Text naturally. Short messages.
+avatar: "🌙"
+color: "#C084FC"
+```
+
+Full profile supports: `display_name`, `description`, `background`, `memories`, `current_mood`, `tags`, per-twin `model` overrides, and `behavior` config (multi-message, max length).
 
 ## Interventions
 
@@ -185,12 +197,12 @@ make validate # Validate profiles
 ## Creating Your Own Characters
 
 1. Create a YAML file in `twins/` with at minimum `name` and `system_prompt`
-2. Optionally add a `.md` file with deep personality reference (used for rich backstory)
+2. Optionally add a `.md` file with deep personality reference
 3. Create scenarios in `scenarios/` that reference your characters
 4. Run `doppel lint` to validate
 
 Characters work best when they have:
-- A distinctive texting style (all lowercase? proper sentences? emoji habits?)
+- A distinctive texting style (all lowercase? proper sentences? ALL CAPS? emoji habits?)
 - Clear emotional stakes (what do they want? what are they afraid of?)
 - Shared history with the other character (memories, inside jokes, unresolved tension)
 - A vulnerability they protect (the thing they deflect from)

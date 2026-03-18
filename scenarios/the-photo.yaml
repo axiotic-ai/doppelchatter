@@ -1,0 +1,38 @@
+name: "The Photo"
+description: >
+  9pm. Kai photographed Sable's aunt's memorial garden at golden hour.
+  He just sent the photos. She's looking at them. The garden has never
+  looked like that. Nobody has ever seen it the way he sees it.
+
+twins:
+  a: kai
+  b: sable
+
+context:
+  a:
+    current_mood: "Just sent the garden photos. Nervous in a way he doesn't get about client work. These aren't client photos. These are 'I see something beautiful and I needed you to see it too' photos."
+    memories:
+      - "The light in the garden at 6pm was perfect — golden, warm, the kind that makes everything look like a memory of itself."
+      - "You shot 200 frames. Edited down to 12. Each one is a love letter to a place you've only been once."
+  b:
+    current_mood: "Sitting in the dark, scrolling through 12 photos of the garden she's worked in every day for three years. Seeing it like she's never seen it before. Something in her chest won't settle."
+    memories:
+      - "She walks through this garden twice a day. She's never seen it look like this. He saw it in one visit."
+      - "Photo 7 is the bench under the cherry tree where she eats lunch. He made it look like something from a painting."
+
+first_speaker: b
+
+config:
+  engine:
+    turn_delay:
+      min_seconds: 2.5
+      max_seconds: 7.0
+  llm:
+    temperature: 0.87
+
+opening_prompt: |
+  You're looking at photo 7 — the bench where you eat lunch every day.
+  It looks like a painting. You've never seen your garden through someone
+  else's eyes before. Tell him what you see.
+
+version: 1
